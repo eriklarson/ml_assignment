@@ -1,11 +1,6 @@
----
-title: "Practical Machine Learning Assignment"
-author: "Erik Larson"
-date: "October 25, 2014"
-output:
-  html_document:
-    keep_md: yes
----
+# Practical Machine Learning Assignment
+Erik Larson  
+October 25, 2014  
 ##Background
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, I use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
 
@@ -16,7 +11,8 @@ I will use a random forest algorithm and 4 fold cross validation
 ##Loading Data
 First I load the data from the csv files provided as part of the assignment.
 
-```{r loading,cache=TRUE}
+
+```r
 pml_training<-read.csv('pml-training.csv')
 pml_testing<-read.csv('pml-testing.csv')
 ```
@@ -31,7 +27,8 @@ Then I loop 4 times over the data, selecting training and cross validation sets 
 
 I then average the accuracy calcs together to predict the out of sample accuracy for the model.
 
-```{r model,cache=TRUE}
+
+```r
 library(caret)
 library(randomForest)
 library('scales')
@@ -61,22 +58,27 @@ for(i in 1:NUM_FOLDS){
 mean_oos_accuracy<-mean(accuracy)
 ```
 
-```{r}
+
+```r
 library('scales')
 formatted_oss_accuracy<-percent(mean_oos_accuracy)
 ```
-The average out of sample accuracy is predicted to be `r formatted_oss_accuracy`.  That means that all of the models are equally good for predicting classes.
+The average out of sample accuracy is predicted to be 99.9%.  That means that all of the models are equally good for predicting classes.
 
 Below I plot the in-sample error rate against the number of trees used for the random forest algorithm. The error approaches zero after around 20 trees are used.  With 300 trees, there is close to 0 error.
 
-```{r plotmodel,cache=TRUE}
+
+```r
 library(caret)
 plot(models[[1]])
 ```
 
+![](./ml_assignment_files/figure-html/plotmodel-1.png) 
+
 I will use the first model to predict values provided from pml_testing dataset.  I need to adjust the new_window variable so that it matches the format of the training set.  You can see the predicted results below.  These got me 100% accuracy on the submitted results for the class.
 
-```{r predicttest,cache=TRUE}
+
+```r
 library(caret)
 model<-models[[1]]
 
@@ -96,6 +98,12 @@ pml_write_files = function(x){
 }
 pml_write_files(answers)
 print(answers)
+```
+
+```
+##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+## Levels: A B C D E
 ```
 
 
