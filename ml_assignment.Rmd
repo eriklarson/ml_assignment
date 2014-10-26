@@ -1,0 +1,75 @@
+---
+title: "ml_assignment"
+author: "Erik Larson"
+date: "October 25, 2014"
+output: html_document
+---
+
+##Loading Data
+First we load the data from the csv files provided for the class included in this git repo.
+
+```{r loading,cache=TRUE}
+pml_training<-read.csv('pml-training.csv')
+pml_testing<-read.csv('pml-testing.csv')
+```
+
+##Calculating Sample Error
+
+I selected a random forrest model because it works well with non-linear data and tends to not overfit.
+
+I first remove the columns with missing data.  Then I loop 4 times over the data, selecting training and cross validation sets based on the 4 fold cross validation.  After the model is trained, compare the predictions on the cross validation set against the actual data.  I take the number of matches divided by the total observations as the accuracy of the model.
+
+I then average the accuracy observations together to get the predicted out of sample accuracy for the model.
+
+```{r model,cache=TRUE}
+library(caret)
+library(randomForest)
+library('scales')
+
+NUM_FOLDS<-4
+folds <- createFolds(pml_training$X,k=NUM_FOLDS)
+
+#Take out columns with empty values
+bad_columns<-c(12:36,50:59,69:83,87:101,103:112,125:151)
+models <- vector("list",NUM_FOLDS)
+accuracy <- c()
+
+#Set the seed so that results are consistant
+set.seed(1223)
+for(i in 1:NUM_FOLDS){
+        train <- pml_training[-folds[[i]],-bad_columns]
+        cv_test <- pml_training[folds[[i]],-bad_columns]
+        
+        models[[i]] <- randomForest( classe ~ ., data=train, verbose = TRUE,ntree=310)
+        predictions <- predict(models[[i]],cv_test)
+        accuracy[[i]]<-sum(predictions==cv_test$classe)/(length(predictions)*1.0)
+}
+mean_oos_accuracy<-mean(accuracy)
+```
+
+```{r}
+library('scales')
+formatted_oss_accuracy<-percent(mean_oos_accuracy)
+```
+The average out of sample accuracy is predicted to be `r formatted_oss_accuracy`.  That means that all of the models are equally good for predicting classes.
+
+Below I plot the in-sample error rate against the number of trees used for the random forrest algorithm. The error approaches zero after around 20 trees are used.  With 300 trees, there is 0 error.
+
+```{r plotmodel}
+library(caret)
+plot(models[[1]])
+```
+
+I will use the first model to predict values provided from pml_testing dataset.
+
+```{r predicttest}
+library(caret)
+model<-models[[1]]
+
+test <- pml_testing[,-bad_columns]
+
+predictions <- predict(model,test)
+
+```
+
+
